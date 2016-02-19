@@ -3,8 +3,25 @@
 YN_USER="yournode"
 YN_GROUP="yournode"
 YN_BASEPATH="/var/yournode"
-
 YN_REPOSITORY="git@bitbucket.org:yournode/yn-automation.git"
+
+echo "__     __              _   _           _"
+echo "\ \   / /             | \ | |         | |"
+echo " \ \_/ /__  _   _ _ __|  \| | ___   __| | ___"
+echo "  \   / _ \| | | | '__| . \` |/ _ \ / _\` |/ _ \\"
+echo "   | | (_) | |_| | |  | |\  | (_) | (_| |  __/"
+echo "   |_|\___/ \__,_|_|  |_| \_|\___(_)__,_|\___|"
+echo ""
+echo "          Shard Server Installation"
+echo ""
+
+echo "Installing dependencies..."
+echo "Installing Extra Packages for Enterprise Linux (EPEL) repositories."
+yum --y install epel-release
+echo "Installing Node.js and NPM..."
+yum --y install nodejs npm
+echo "Installing Git..."
+yum --y install git
 
 echo "Creating folder structure..."
 mkdir -p "$YN_BASEPATH"
