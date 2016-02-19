@@ -4,7 +4,8 @@ YN_USER="yournode"
 YN_GROUP="yournode"
 YN_BASEPATH="/var/yournode"
 YN_MONGOPORT="35642"
-YN_REPOSITORY="git@bitbucket.org:yournode/yn-automation.git"
+YN_DEFAULTS_REPOSITORY="git@bitbucket.org:yournode/yn-defaultpages.git"
+YN_AUTOMATION_REPOSITORY="git@bitbucket.org:yournode/yn-automation.git"
 
 echo "__     __              _   _           _"
 echo "\ \   / /             | \ | |         | |"
@@ -42,27 +43,49 @@ printf "auth = true\n" >> "$YN_BASEPATH/mongodb.conf"
 printf "dbpath = \"$YN_BASEPATH/db\"\n" >> "$YN_BASEPATH/mongodb.conf"
 printf "logpath = \"$YN_BASEPATH/logs/mongodb.log\"\n" >> "$YN_BASEPATH/mongodb.conf"
 
-echo "Enabling mongod on system start"
-systemctl start mongod
-echo "Starting mongod..."
-service mongod start
+echo "Creating MongoDB service file for YourNode (yn-mongod)..."
+printf "[Unit]\n" > /etc/systemd/system/yn-mongod.service
+printf "Description=High-performance, schema-free document-oriented database\n" >> /etc/systemd/system/yn-mongod.service
+printf "After=network.target\n\n" >> /etc/systemd/system/yn-mongod.service
+printf "[Service]\n" >> /etc/systemd/system/yn-mongod.service
+printf "User=mongodb\n" >> /etc/systemd/system/yn-mongod.service
+printf "ExecStart=/usr/bin/mongod --quiet --config \"$YN_BASEPATH/mongodb.conf\"\n\n" >> /etc/systemd/system/yn-mongod.service
+printf "[Install]\n" >> /etc/systemd/system/yn-mongod.service
+printf "WantedBy=multi-user.target\n" >> /etc/systemd/system/yn-mongod.service
+
+echo "Reloading system services..."
+systemctl daemon-reload
+echo "Enabling yn-mongod on system start..."
+systemctl enable yn-mongod
+echo "Starting yn-mongod..."
+systemctl start yn-mongod
+
+echo "Cloning YourNode Default Pages..."
+git clone "$YN_DEFAULTS_REPOSITORY" "$YN_BASEPATH/lib/defaultpages"
+
+echo "Enabling default pages on SELinux to be served..."
+chcon -Rt httpd_sys_content_t "$YN_BASEPATH/lib/defaultpages"
 
 echo "Configuring nginx..."
 sed -c -i "s/.*\(http {\).*/\http {\n    # YourNode\n    include $YN_BASEPATH\/proxy\/apps-enabled\/\*.conf\n/" /etc/nginx/nginx.conf
 echo "Enabling nginx on system start"
-systemctl start nginx
+systemctl enable nginx
 echo "Starting nginx..."
-service nginx start
+systemctl start nginx
 
-echo "Clone YourNode Automation Scripts..."
-git clone "$YN_REPOSITORY" "$YN_BASEPATH/lib"
+echo "Cloning YourNode Automation Scripts..."
+git clone "$YN_AUTOMATION_REPOSITORY" "$YN_BASEPATH/lib/automation"
 
 echo "Installing YourNode Master Automation..."
-ln -s "$YN_BASEPATH/lib/master/yn-master.js" "$YN_BASEPATH/bin/yn-master"
-ln -s "$YN_BASEPATH/lib/master/yournode-master.conf" "$YN_BASEPATH/bin/yournode-master.conf"
+ln -s "$YN_BASEPATH/lib/automation/master/yn-master.js" "$YN_BASEPATH/bin/yn-master"
+ln -s "$YN_BASEPATH/lib/automation/master/yournode-master.conf" "$YN_BASEPATH/bin/yournode-master.conf"
 export PATH=$PATH:$YN_BASEPATH/bin
+
+echo "Creating SSH Keys for the Master Server..."
+ssh-keygen -t rsa -C "YourNode Master Server Key" -N "" -f "$YN_BASEPATH/master.key"
 
 echo "Changing folder and files owners..."
 chown -R "$YN_USER:$YN_GROUP" "$YN_BASEPATH"
 
 echo "YourNode Master - Installation sucessful."
+echo "The Master Server public SSH Key is located at $YN_BASEPATH/master.key.pub"
