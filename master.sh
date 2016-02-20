@@ -9,6 +9,7 @@ YN_MONGO_DEFAULT_USER="yournode"
 YN_MONGO_DEFAULT_PASS="Q#FH5ur4Y@2MBn"
 YN_DEFAULTS_REPOSITORY="git@bitbucket.org:yournode/yn-defaultpages.git"
 YN_AUTOMATION_REPOSITORY="git@bitbucket.org:yournode/yn-automation.git"
+YN_DEFAULT_BRANCH="master"
 
 echo "__     __              _   _           _"
 echo "\ \   / /             | \ | |         | |"
@@ -26,6 +27,19 @@ then
     echo ""
 else
     exit
+fi
+
+read -r -p "Do you want to use the same branch on all repositories? [Y/n] " RESPONSE
+if [[ $RESPONSE =~ ^([nN])$ ]]
+then
+    read -p "Select branch for Default Pages [$YN_DEFAULT_BRANCH]: " YN_DEFAULTS_BRANCH
+    YN_DEFAULTS_BRANCH=${YN_DEFAULTS_BRANCH:-$YN_DEFAULT_BRANCH}
+    read -p "Select branch for Automation Scripts [$YN_DEFAULT_BRANCH]: " YN_AUTOMATION_BRANCH
+    YN_AUTOMATION_BRANCH=${YN_AUTOMATION_BRANCH:-$YN_DEFAULT_BRANCH}
+else
+    read -p "From which branch you want to be fetched? [$YN_DEFAULT_BRANCH]: " YN_BRANCH
+    YN_DEFAULTS_BRANCH=${YN_BRANCH:-$YN_DEFAULT_BRANCH}
+    YN_AUTOMATION_BRANCH=${YN_BRANCH:-$YN_DEFAULT_BRANCH}
 fi
 
 read -p "Enter MongoDB port [$YN_MONGO_DEFAULT_PORT]: " YN_MONGO_PORT
@@ -95,6 +109,7 @@ mongo 127.0.0.1:$YN_MONGO_PORT/YNDATA -u ynmdbAdmin -p $YN_MONGO_ADMIN_PASS --au
 
 echo "Cloning YourNode Default Pages..."
 git clone "$YN_DEFAULTS_REPOSITORY" "$YN_BASEPATH/lib/defaultpages"
+git --git-dir="$YN_BASEPATH/lib/defaultpages/.git" --work-tree="$YN_BASEPATH/lib/defaultpages" checkout $YN_DEFAULTS_BRANCH
 
 echo "Enabling default pages on SELinux to be served..."
 chcon -Rt httpd_sys_content_t "$YN_BASEPATH/lib/defaultpages"
@@ -113,6 +128,7 @@ useradd -g $YN_GROUP $YN_USER
 
 echo "Cloning YourNode Automation Scripts..."
 git clone "$YN_AUTOMATION_REPOSITORY" "$YN_BASEPATH/lib/automation"
+git --git-dir="$YN_BASEPATH/lib/automation/.git" --work-tree="$YN_BASEPATH/lib/automation" checkout $YN_AUTOMATION_BRANCH
 
 echo "Installing YourNode Master Automation..."
 ln -s "$YN_BASEPATH/lib/automation/master/yn-master.js" "$YN_BASEPATH/bin/yn-master"
