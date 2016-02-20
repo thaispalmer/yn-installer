@@ -73,10 +73,10 @@ printf "logpath = \"$YN_BASEPATH/logs/mongodb.log\"\n" >> "$YN_BASEPATH/mongodb.
 
 echo "Creating MongoDB service file for YourNode (yn-mongod)..."
 printf "[Unit]\n" > /etc/systemd/system/yn-mongod.service
-printf "Description=High-performance, schema-free document-oriented database\n" >> /etc/systemd/system/yn-mongod.service
+printf "Description=MongoDB Service for YourNode\n" >> /etc/systemd/system/yn-mongod.service
 printf "After=network.target\n\n" >> /etc/systemd/system/yn-mongod.service
 printf "[Service]\n" >> /etc/systemd/system/yn-mongod.service
-printf "User=mongodb\n" >> /etc/systemd/system/yn-mongod.service
+printf "User=$YN_USER\n" >> /etc/systemd/system/yn-mongod.service
 printf "ExecStart=/usr/bin/mongod --quiet --config \"$YN_BASEPATH/mongodb.conf\"\n\n" >> /etc/systemd/system/yn-mongod.service
 printf "[Install]\n" >> /etc/systemd/system/yn-mongod.service
 printf "WantedBy=multi-user.target\n" >> /etc/systemd/system/yn-mongod.service
