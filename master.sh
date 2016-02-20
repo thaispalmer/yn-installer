@@ -59,6 +59,9 @@ yum -y install nodejs npm
 echo "Installing Git..."
 yum -y install git
 
+echo "Installing nginx..."
+yum -y install nginx
+
 echo "Installing MongoDB repositories..."
 printf "[mongodb]\n" > /etc/yum.repos.d/mongodb.repo
 printf "name=MongoDB Repository\n" >> /etc/yum.repos.d/mongodb.repo
@@ -82,8 +85,8 @@ mkdir -p "$YN_BASEPATH/bin"
 echo "Creating MongoDB configuration file..."
 printf "port = $YN_MONGO_PORT\n" > "$YN_BASEPATH/mongodb.conf"
 printf "auth = true\n" >> "$YN_BASEPATH/mongodb.conf"
-printf "dbpath = \"$YN_BASEPATH/db\"\n" >> "$YN_BASEPATH/mongodb.conf"
-printf "logpath = \"$YN_BASEPATH/logs/mongodb.log\"\n" >> "$YN_BASEPATH/mongodb.conf"
+printf "dbpath = $YN_BASEPATH/db\n" >> "$YN_BASEPATH/mongodb.conf"
+printf "logpath = $YN_BASEPATH/logs/mongodb.log\n" >> "$YN_BASEPATH/mongodb.conf"
 
 echo "Creating MongoDB service file for YourNode (yn-mongod)..."
 printf "[Unit]\n" > /etc/systemd/system/yn-mongod.service
@@ -131,6 +134,7 @@ git clone "$YN_AUTOMATION_REPOSITORY" "$YN_BASEPATH/lib/automation"
 git --git-dir="$YN_BASEPATH/lib/automation/.git" --work-tree="$YN_BASEPATH/lib/automation" checkout $YN_AUTOMATION_BRANCH
 
 echo "Installing YourNode Master Automation..."
+(cd $YN_BASEPATH/lib/automation/master && npm install)
 ln -s "$YN_BASEPATH/lib/automation/master/yn-master.js" "$YN_BASEPATH/bin/yn-master"
 ln -s "$YN_BASEPATH/lib/automation/master/yournode-master.conf" "$YN_BASEPATH/bin/yournode-master.conf"
 export PATH=$PATH:$YN_BASEPATH/bin
