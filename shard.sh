@@ -53,7 +53,7 @@ ln -s "$YN_BASEPATH/lib/automation/shard/yn-shard.js" "$YN_BASEPATH/bin/yn-shard
 ln -s "$YN_BASEPATH/lib/automation/shard/yournode-shard.conf" "$YN_BASEPATH/bin/yournode-shard.conf"
 export PATH=$PATH:$YN_BASEPATH/bin
 
-echo "Clone YourNode Hello Word App..."
+echo "Clone YourNode Hello World App..."
 git clone "$YN_HELLOWORLD_REPOSITORY" "$YN_BASEPATH/lib/helloworld"
 
 echo "Changing folder and files owners..."
